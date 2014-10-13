@@ -1,0 +1,55 @@
+Classe Modelo
+
+package com.alexss.modelo;
+
+public class Contato {
+
+    private int id;
+    private int matricula;
+    private String nome;
+    private String data;
+
+    public Contato(){
+
+    }
+
+    public Contato(int _matric, String _nome, String _data){
+
+        this.matricula = _matric;
+        this.nome = _nome;
+        this.data = _data;
+    }
+
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public int getMatricula() {
+        return matricula;
+    }
+
+    public void setMatricula(int matricula) {
+        this.matricula = matricula;
+    }
+
+    public String getNome() {
+        return nome;
+    }
+
+    public void setNome(String nome) {
+        this.nome = nome;
+    }
+
+    public String getData() {
+        return data;
+    }
+
+    public void setData(String data) {
+        this.data = data;
+    }
+}
