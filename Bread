@@ -1,0 +1,104 @@
+@Projeto modificado, 
+@
+
+Classe Servlet
+
+package controller;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import util.ConnectJDBC;
+
+@WebServlet("/ActionServlet")
+public class ActionServlet extends HttpServlet {
+	
+	private static final long serialVersionUID = 1L;
+	
+	public String uname = null;
+	public String pwd = null;
+	public ConnectJDBC con = null;
+	
+    public ActionServlet() {
+        super();
+    }
+
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	
+		con = new ConnectJDBC();
+		System.out.println("Estou no servlet!");
+		
+		try {
+			con.OpenConnect();
+			response.setContentType("text/html");
+			PrintWriter out = response.getWriter();
+			out.println("<html><head><title>");
+			out.println("Resultado");
+			out.println("</title></head><body>");
+			out.println("Conectado ao Banco com Sucesso!");
+			out.println("</body></html>");
+			out.close();
+		
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setContentType("text/html");
+			PrintWriter out = response.getWriter();
+			out.println("<html><head><title>");
+			out.println("Resultado");
+			out.println("</title></head><body>");
+			out.println("Problemas ao conectar ao Banco"+ e);
+			out.println("</body></html>");
+			out.close();
+		
+		}finally{
+			con.CloseConnect();
+		}	
+
+	}
+
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		
+		uname = request.getParameter("Nome:" + uname);
+		pwd = request.getParameter("Matricula:" + pwd);
+				
+	}
+
+}
+
+@web.xml
+
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE web-app PUBLIC "-//Sun Microsystems, Inc.//DTD Web Application 2.2//EN"
+ "http://java.sun.com/j2ee/dtds/web-app_2_2.dtd">
+ 
+ <web-app>
+     <servlet>
+         <servlet-name>ActionServlet</servlet-name>
+         <servlet-class>controller.ActionServlet</servlet-class>
+         <load-on-startup>1</load-on-startup>
+     </servlet>
+     
+     <servlet-mapping>
+         <servlet-name>ActionServlet</servlet-name>
+         <url-pattern>servlet/controller.ActionServlet</url-pattern>
+     </servlet-mapping>
+     
+     <session-config>
+         <session-timeout>30</session-timeout>
+     </session-config>
+     
+     <welcome-file-list>
+         <welcome-file></welcome-file>
+     </welcome-file-list>
+     
+ </web-app>
+ 
+ 
+
+
