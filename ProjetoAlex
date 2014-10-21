@@ -1,0 +1,482 @@
+@
+@ CLASSES DO PACOTE DAO
+@
+
+package dao;
+
+import java.io.Serializable;
+
+public class Contato implements Serializable {
+	
+	private static final long serialVersionUID = 1L;
+	
+    private int id;
+    private int matricula;
+    private String nome;
+    private String data;
+
+    public Contato(){
+    }
+    public Contato(int _matric, String _nome, String _data){
+        this.matricula = _matric;
+        this.nome = _nome;
+        this.data = _data;
+    }
+    public int getId() {
+        return id;
+    }
+    public void setId(int id) {
+        this.id = id;
+    }
+    public int getMatricula() {
+        return matricula;
+    }
+    public void setMatricula(int matricula) {
+        this.matricula = matricula;
+    }
+    public String getNome() {
+        return nome;
+    }
+    public void setNome(String nome) {
+        this.nome = nome;
+    }
+    public String getData() {
+        return data;
+    }
+    public void setData(String data) {
+        this.data = data;
+    }
+}
+
+
+package dao;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import util.ConnectJDBC;
+import util.FormatDate;
+
+public class ContatoDAO {
+
+	private Connection conn = null;
+    private Statement stmt = null;
+    private PreparedStatement pstmt = null;
+    private ResultSet rs = null;
+    
+    private ConnectJDBC connect;
+    public SimpleDateFormat novoFormato = null;
+    
+    public Date data = null;
+    java.sql.Date dateBanco = null;
+
+    public boolean Save(Contato c){
+
+        connect = new ConnectJDBC();
+        FormatDate fdt = new FormatDate();
+
+        boolean conectado = false;
+
+        if(connect != null ){
+            connect.OpenConnect();
+        }
+
+        try {
+        	data = new Date();        	
+            
+        	data = fdt.formataData(c.getData());
+  
+            dateBanco = new java.sql.Date(data.getTime());
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        try{
+        	stmt = conn.createStatement();
+ //           String query = "INSERT INTO contato(matricula, name, data)VALUES(?,?,?)";
+//            pstmt = conn.prepareStatement(query);
+//            pstmt.setInt(1, c.getMatricula());
+//            pstmt.setString(2, c.getNome());
+//            pstmt.setDate(3, dateBanco);
+//            pstmt.execute();
+//            pstmt.close();
+            
+            String query = "INSERT INTO contato(matricula, name, data)"+ "VALUES("+ c.getMatricula() +",'"+ c.getNome() +"','"+ dateBanco +"')";
+            int resultado = stmt.executeUpdate(query);
+            
+            if(resultado == 1)
+            	System.out.println("Inserido com sucesso!");
+            	
+            conectado = true;
+            
+                        
+            }catch(SQLException exp){
+            	exp.printStackTrace();
+            	System.out.println("Not Execute your Query..." + exp);                
+            	}finally{
+            	  connect.CloseConnect();
+            	}
+         return conectado;   	
+        }
+        
+    }
+
+
+
+@
+@ CLASSE FormONE
+@
+
+package forms;
+
+import javax.swing.*;
+import javax.swing.text.MaskFormatter;
+
+import util.GeraXML;
+
+import dao.Contato;
+
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.text.ParseException;
+
+
+
+	public class FormOne extends JFrame implements ActionListener{
+
+		private static final long serialVersionUID = 1L;
+		private JTextField txtNome, txtMatricula;
+		private MaskFormatter maskData_Nascimento = null;
+		private JFormattedTextField jFormattedTextData = null;
+		private JLabel lblNome, lblMatricula, lblData;
+		private JButton btnCadastrar, btnConsultar;
+    
+  
+    public FormOne(){
+        super("Contact");
+        setSize(520,520);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        getContentPane().setLayout(null);
+
+        btnCadastrar = new JButton("Cadastrar");
+        btnConsultar = new JButton("Consultar");
+
+        lblNome = new JLabel("Nome:");
+        lblMatricula = new JLabel("Matricula:");
+        lblData = new JLabel("Data Inicio:");
+
+        txtNome = new JTextField();
+        txtMatricula = new JTextField();
+
+        try{
+            maskData_Nascimento = new MaskFormatter("##/##/####");
+        }catch (ParseException e){
+            System.out.println("Erro na Formatação" + e);
+            e.printStackTrace();
+        }
+
+        getContentPane().add(btnCadastrar);
+        getContentPane().add(btnConsultar);
+
+        getContentPane().add(lblData);
+        getContentPane().add(lblMatricula);
+        getContentPane().add(lblNome);
+
+        getContentPane().add(txtNome);
+        getContentPane().add(txtMatricula);
+
+        jFormattedTextData = new JFormattedTextField(maskData_Nascimento);
+        getContentPane().add(jFormattedTextData);
+
+        //Montando a tela
+        lblNome.setBounds(5,60,100,20);
+        txtNome.setBounds(70,60,160,20);
+
+        lblMatricula.setBounds(5,100,120,20);
+        txtMatricula.setBounds(70,100,160,20);
+
+        lblData.setBounds(5,140,100,20);
+        jFormattedTextData.setBounds(70,140,160,20);
+
+        btnConsultar.setBounds(200,200,100,30);
+        btnCadastrar.setBounds(70,200,100,30);
+
+        lblNome.setForeground(Color.BLACK);
+        lblData.setForeground(Color.BLACK);
+        lblMatricula.setForeground(Color.BLACK);
+
+        txtNome.addActionListener(this);
+        txtMatricula.addActionListener(this);
+        btnCadastrar.addActionListener(this);
+        btnConsultar.addActionListener(this);
+    }
+    @Override
+    
+    public void actionPerformed(ActionEvent action) {
+
+    	
+        if(action.getSource() == btnCadastrar){
+            Contato contato = new Contato();
+            //ContatoDAO dao = new ContatoDAO();
+
+            contato.setNome(txtNome.getText());
+            contato.setMatricula(Integer.parseInt(txtMatricula.getText()));
+            contato.setData(jFormattedTextData.getText());
+            GeraXML gXML = new GeraXML();
+            StringBuffer xml = gXML.gXML(contato);
+            
+            try {
+				
+            	URL url = new URL("http://localhost:8080/BreadCrumb/ActionServlet?");
+				//URLConnection connect = url.openConnection();
+				
+            	HttpURLConnection httpConnection = (HttpURLConnection)url.openConnection();
+            	httpConnection.setRequestMethod("POST");
+            	
+            	httpConnection.setDoOutput(true);
+            	httpConnection.setAllowUserInteraction(false);
+				
+				
+				//Escrevendo meu Objeto no Servlet//
+            	ObjectOutputStream wrObj = new ObjectOutputStream(httpConnection.getOutputStream());
+				wrObj.writeObject(xml);
+				wrObj.flush();
+				wrObj.close();
+			
+            } catch (MalformedURLException e) {            	
+				e.printStackTrace();
+			
+            }catch (IOException e) {
+				e.printStackTrace();
+				System.out.println("Error"+e);
+			}
+            
+
+            //boolean acesso = dao.Save(contato);
+        }
+    }
+}
+
+@
+@ CLASSE SERVLET
+@
+
+package controle;
+
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.PrintWriter;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.dom4j.DocumentException;
+import org.dom4j.io.SAXReader;
+
+import util.ConnectJDBC;
+
+
+@WebServlet("/ActionServlet")
+public class ActionServlet extends HttpServlet {
+	
+
+	private static final long serialVersionUID = 1L;
+	public ConnectJDBC con = null;
+	
+    public ActionServlet() {
+        super();
+    }
+
+	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	
+		processandoRequisicao(request, response);		
+	}
+
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+			
+	}
+	
+	private void processandoRequisicao(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+		
+		StringBuffer xml = null;		
+		
+		ObjectInputStream inObj = new ObjectInputStream(req.getInputStream());
+		
+		
+		try {
+			
+			xml = (StringBuffer) inObj.readObject();			
+			SAXReader reader = new SAXReader();
+			reader.read(xml.toString());
+			
+			res.setContentType("text/xml");
+			
+			PrintWriter out = res.getWriter();
+			out.println("<html><head>");
+			out.println("<title>");
+			out.println("Carregando um Objeto no Servlet");
+			out.println("</title></head>");
+			out.println("<body>");
+			out.println(xml.toString());
+			out.println("</body></html>");
+		
+		} catch (ClassNotFoundException | DocumentException e1) {
+			
+			e1.printStackTrace();
+		
+		}finally{
+			
+		}		
+	}
+
+}
+
+
+@
+@ CLASSES DO PACOTE UTIL
+@
+
+package util;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+
+public class ConnectJDBC {
+
+    private Connection conn;
+    private String user = "root";
+    private String senha = "";
+    private String url = "jdbc:mysql://localhost:3306/breadcrumb";
+    private String drive = "com.mysql.jdbc.Driver";
+
+    public void OpenConnect(){
+        try{
+            Class.forName(drive);
+            conn = DriverManager.getConnection(url,user,senha);
+
+        }catch(ClassNotFoundException ex){
+            ex.printStackTrace();
+            System.out.println("cannot found Driver Class" + ex);
+
+        }catch (SQLException e){
+            e.printStackTrace();
+            System.out.println("cannot found Service" + e);
+        }
+    }
+    public void CloseConnect(){
+        try{
+            conn.close();
+
+        }catch (SQLException e){
+            e.printStackTrace();
+            System.out.println("Not Close Connection..."+ e);
+        }
+    }
+}
+
+@
+@
+
+package util;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+public class FormatDate {
+
+	SimpleDateFormat novoFormato = null;
+	
+	 public Date formataData(String data) {
+		 
+	        if (data == null || data.equals(""))
+	            return null;
+
+	        Date dt = new Date();
+	        novoFormato = new SimpleDateFormat("dd/MM/yyyy");
+	        try {
+	        	
+				dt = novoFormato.parse(data);
+			
+	        } catch (ParseException e) {
+				e.printStackTrace();
+			}
+
+	        return dt;
+	    }
+}
+
+@
+@
+
+package util;
+
+import dao.Contato;
+
+public class GeraXML {
+
+	public StringBuffer gXML(Contato c){
+		
+		StringBuffer xml = new StringBuffer("<?xml version='1.0' encoding='utf-8'?>");
+        xml.append("<contatos>");
+        
+        xml.append("<contato>");
+        
+        xml.append("<matricula>");
+        xml.append(c.getMatricula());
+        xml.append("</matricula>");
+        
+        xml.append("<nome>");
+        xml.append(c.getNome());
+        xml.append("</nome>");
+        
+        xml.append("<data>");
+        xml.append(c.getData());
+        xml.append("/data");
+        
+        xml.append("</contato>");
+        
+        xml.append("</contatos>");
+        
+        return xml;
+        
+	}
+}
+
+@
+@ CLASSE MAIN
+@
+
+
+package start;
+
+import forms.FormOne;
+import java.util.Scanner;
+
+public class Main {
+
+    Scanner sc = new Scanner(System.in);
+
+    public static void main(String[] args) {
+
+        FormOne form = new FormOne();
+        
+        form.setVisible(true);
+    }
+}
